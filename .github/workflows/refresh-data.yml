@@ -1,0 +1,40 @@
+name: refresh-data
+
+# Singapore Toto draws happen Mon & Thu (~18:30 SGT). We fetch a few hours later
+# (15:00 UTC = 23:00 SGT), commit the updated seed CSV, and let Render redeploy.
+on:
+  schedule:
+    - cron: "0 15 * * 1,4"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install minimal deps
+        run: pip install requests pandas
+
+      - name: Fetch latest draws into the seed CSV
+        working-directory: backend
+        run: python -m app.ingest --update-csv --pages 3
+
+      - name: Commit if the data changed
+        run: |
+          if [[ -n "$(git status --porcelain backend/data/seed_draws.csv)" ]]; then
+            git config user.name "toto-data-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git add backend/data/seed_draws.csv
+            git commit -m "Update Toto draw data"
+            git push
+          else
+            echo "No new draws."
+          fi

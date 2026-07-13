@@ -1,0 +1,13 @@
+# Render Blueprint: one web service running the single container (SPA + API).
+# Deploy: push to GitHub, then "New > Blueprint" in Render and pick this repo.
+services:
+  - type: web
+    name: totolab
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    autoDeploy: true          # redeploy on every push to the connected branch
+    healthCheckPath: /api/health
+    envVars:
+      - key: TOTO_DISABLE_SCHEDULER
+        value: "1"            # data is refreshed via the GitHub Actions cron

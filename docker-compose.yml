@@ -1,0 +1,12 @@
+# Runs the production single container locally: SPA + API from one origin at
+# http://localhost:8010. For active frontend development with hot-reload, use the
+# two-terminal flow in the README instead (Vite on :5173 proxying /api to :8010).
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8010:8010"
+    environment:
+      TOTO_DISABLE_SCHEDULER: "1"

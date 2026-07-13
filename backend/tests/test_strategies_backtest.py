@@ -3,7 +3,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from app import backtest, config, db, ingest, ml, strategies
+import json
+
+from app import backtest, config, db, ingest, ml, precompute, strategies
 
 
 @pytest.mark.parametrize("key", list(strategies.STRATEGIES.keys()))
@@ -104,6 +106,16 @@ def test_backtest_runs_and_is_honest(draws_df):
         assert 0.0 <= m <= 2.0
     # on fair synthetic data nothing should beat random
     assert res["any_beats_random"] is False
+
+
+def test_precompute_writes_valid_json(tmp_path, draws_df):
+    out = tmp_path / "backtest.json"
+    precompute.generate(out=out, df=draws_df)
+    data = json.loads(out.read_text(encoding="utf-8"))
+    assert data["precomputed"] is True
+    assert "generated_from_draw" in data
+    assert len(data["results"]) == 7  # 6 strategies + ml
+    assert "verdict" in data and "theoretical_random" in data
 
 
 def test_backtest_flags_a_skillful_strategy(monkeypatch):

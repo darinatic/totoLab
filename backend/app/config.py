@@ -25,6 +25,14 @@ DATA_DIR = BASE_DIR / "data"
 SEED_CSV = DATA_DIR / "seed_draws.csv"
 DB_PATH = Path(os.environ.get("TOTO_DB_PATH", DATA_DIR / "toto.db"))
 
+# Precomputed default backtest, served as a static asset so the (slow) walk-forward
+# backtest never runs on first page load. Lives in the frontend's public/ dir so it
+# ships with the SPA; regenerated whenever the seed data changes.
+PRECOMPUTE_BACKTEST = Path(os.environ.get(
+    "TOTO_PRECOMPUTE_BACKTEST",
+    BASE_DIR.parent / "frontend" / "public" / "precomputed" / "backtest.json",
+))
+
 # --- Data source (ToS-safe community aggregator; NOT Singapore Pools directly) ---
 SOURCE_URL_TEMPLATE = (
     "https://en.lottolyzer.com/history/singapore/toto/"

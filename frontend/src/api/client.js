@@ -34,4 +34,16 @@ export const api = {
   },
   backtest: (testSize = 150, includeMl = true, seed = 0) =>
     get(`/backtest?test_size=${testSize}&include_ml=${includeMl}&seed=${seed}`),
+
+  // Static precomputed default backtest (fast first load). Served from the SPA's
+  // public/ dir at the site root, so it bypasses the /api base. Returns null if
+  // absent, so callers can fall back to the live endpoint.
+  precomputedBacktest: async () => {
+    try {
+      const res = await fetch('/precomputed/backtest.json', { cache: 'no-store' })
+      return res.ok ? res.json() : null
+    } catch {
+      return null
+    }
+  },
 }

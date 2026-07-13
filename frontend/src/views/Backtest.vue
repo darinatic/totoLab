@@ -12,9 +12,12 @@ const testSize = ref(150)
 const includeMl = ref(true)
 const loading = ref(true)
 const running = ref(false)
+const isPrecomputed = ref(false)
 
+// Live run for the current settings (the "Run backtest" button).
 async function run() {
   running.value = true
+  isPrecomputed.value = false
   const [b, f] = await Promise.all([
     api.backtest(testSize.value, includeMl.value, 0),
     store.fairness(),
@@ -24,7 +27,20 @@ async function run() {
   running.value = false
   loading.value = false
 }
-run()
+
+// First view: load the static precomputed default (instant), else run live.
+async function loadInitial() {
+  const [pre, f] = await Promise.all([api.precomputedBacktest(), store.fairness()])
+  fairness.value = f
+  if (pre) {
+    bt.value = pre
+    isPrecomputed.value = true
+    loading.value = false
+  } else {
+    await run()
+  }
+}
+loadInitial()
 
 // Horizontal bars = mean matches per strategy; a custom overlay draws the 95%
 // bootstrap CI as an error bar; a markLine marks the theoretical random value.
@@ -127,6 +143,10 @@ const option = computed(() => {
           {{ bt.any_beats_random ? '⚠ A strategy edged ahead (noise)' : '✓ Nothing beats random' }}
         </span>
         <p class="hint" style="margin-top: 12px">{{ bt.verdict }}</p>
+        <p v-if="isPrecomputed" class="hint" style="margin-top: 8px">
+          Showing the latest precomputed run (through draw {{ bt.generated_from_draw }}).
+          Adjust the settings above and press <strong>Run backtest</strong> to recompute live.
+        </p>
       </div>
 
       <div class="card">

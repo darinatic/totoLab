@@ -1,7 +1,8 @@
 name: refresh-data
 
 # Singapore Toto draws happen Mon & Thu (~18:30 SGT). We fetch a few hours later
-# (15:00 UTC = 23:00 SGT), commit the updated seed CSV, and let Render redeploy.
+# (15:00 UTC = 23:00 SGT), regenerate the precomputed backtest, commit both, and
+# let Render redeploy (which reseeds from the CSV and ships the fresh JSON).
 on:
   schedule:
     - cron: "0 15 * * 1,4"
@@ -20,20 +21,26 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install minimal deps
-        run: pip install requests pandas
+      - name: Install deps
+        run: pip install requests pandas numpy scipy scikit-learn
 
       - name: Fetch latest draws into the seed CSV
         working-directory: backend
         run: python -m app.ingest --update-csv --pages 3
 
-      - name: Commit if the data changed
+      - name: Regenerate the precomputed backtest
+        working-directory: backend
+        run: python -m app.precompute
+
+      - name: Commit if anything changed
         run: |
-          if [[ -n "$(git status --porcelain backend/data/seed_draws.csv)" ]]; then
+          CSV=backend/data/seed_draws.csv
+          JSON=frontend/public/precomputed/backtest.json
+          if [[ -n "$(git status --porcelain $CSV $JSON)" ]]; then
             git config user.name "toto-data-bot"
             git config user.email "actions@users.noreply.github.com"
-            git add backend/data/seed_draws.csv
-            git commit -m "Update Toto draw data"
+            git add "$CSV" "$JSON"
+            git commit -m "Update Toto draw data and precomputed backtest"
             git push
           else
             echo "No new draws."

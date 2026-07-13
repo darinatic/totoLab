@@ -186,7 +186,11 @@ button.btn.ghost, select.btn.ghost {
   padding: 12px 24px;
   text-align: center;
 }
+.disclaimer-bar p { margin: 3px 0; }
 .disclaimer-bar strong { color: var(--text-primary); }
+.disclaimer-bar .helpline { font-size: 12px; }
+.disclaimer-bar .helpline a { color: var(--series-1); font-weight: 600; }
+.disclaimer-bar .helpline a:hover { text-decoration: underline; }
 
 .hint { color: var(--muted); font-size: 13px; }
 .loading { color: var(--muted); padding: 40px; text-align: center; }

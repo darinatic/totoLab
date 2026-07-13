@@ -41,6 +41,5 @@ CORS_ORIGINS = os.environ.get(
 DISCLAIMER = (
     "Toto draws are independent random events. No method can predict future "
     "draws better than chance; the jackpot odds are 1 in 13,983,816 and the "
-    "expected value of a ticket is negative. These picks are for entertainment "
-    "only."
+    "expected value of a ticket is negative."
 )

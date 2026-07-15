@@ -117,7 +117,9 @@ STRATEGY_LABELS = {
     "overdue": "Due (gap-weighted)",
     "markov": "Co-occurrence (Markov)",
     "contrarian": "Contrarian (unpopular numbers)",
-    "ml": "Machine learning",
+    "ml_gbm": "ML - gradient boosting",
+    "ml_logistic": "ML - logistic regression",
+    "ml_mlp": "ML - neural net (MLP)",
 }
 
 STRATEGY_BLURBS = {
@@ -127,7 +129,9 @@ STRATEGY_BLURBS = {
     "overdue": "Weighted toward 'due' numbers that have not appeared in a while.",
     "markov": "Favours numbers that historically co-occur with the last draw.",
     "contrarian": "Favours numbers above 31 that players avoid - smaller jackpot split if you win.",
-    "ml": "A gradient-boosting model predicting each number's chance of appearing next.",
+    "ml_gbm": "Gradient-boosted trees predicting each number's chance of appearing next.",
+    "ml_logistic": "A linear (logistic regression) model - the simplest ML baseline.",
+    "ml_mlp": "A small neural network (multi-layer perceptron).",
 }
 
 # Stable per-strategy offset so each strategy draws from an INDEPENDENT random

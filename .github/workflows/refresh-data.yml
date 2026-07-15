@@ -1,11 +1,11 @@
 name: refresh-data
 
-# Singapore Toto draws happen Mon & Thu (~18:30 SGT). We fetch a few hours later
-# (15:00 UTC = 23:00 SGT), regenerate the precomputed backtest, commit both, and
-# let Render redeploy (which reseeds from the CSV and ships the fresh JSON).
+# Toto draws Mon/Thu, 4D draws Wed/Sat/Sun. We fetch a few hours after each
+# (15:00 UTC = 23:00 SGT), regenerate the precomputed backtests, commit whatever
+# changed, and let Render redeploy (which reseeds from the CSVs and ships the JSON).
 on:
   schedule:
-    - cron: "0 15 * * 1,4"
+    - cron: "0 15 * * *"   # daily; only commits on days with new draws
   workflow_dispatch: {}
 
 permissions:
@@ -24,23 +24,28 @@ jobs:
       - name: Install deps
         run: pip install requests pandas numpy scipy scikit-learn
 
-      - name: Fetch latest draws into the seed CSV
+      - name: Fetch latest Toto draws
         working-directory: backend
         run: python -m app.ingest --update-csv --pages 3
 
-      - name: Regenerate the precomputed backtest
+      - name: Fetch latest 4D draws
         working-directory: backend
-        run: python -m app.precompute
+        run: python -m app.fourd_ingest --update-csv --limit 5
+
+      - name: Regenerate precomputed backtests (Toto + 4D)
+        working-directory: backend
+        run: python -m app.precompute --game both
 
       - name: Commit if anything changed
         run: |
-          CSV=backend/data/seed_draws.csv
-          JSON=frontend/public/precomputed/backtest.json
-          if [[ -n "$(git status --porcelain $CSV $JSON)" ]]; then
+          FILES="backend/data/seed_draws.csv backend/data/fourd_seed.csv \
+                 frontend/public/precomputed/backtest.json \
+                 frontend/public/precomputed/4d_backtest.json"
+          if [[ -n "$(git status --porcelain $FILES)" ]]; then
             git config user.name "toto-data-bot"
             git config user.email "actions@users.noreply.github.com"
-            git add "$CSV" "$JSON"
-            git commit -m "Update Toto draw data and precomputed backtest"
+            git add $FILES
+            git commit -m "Update draw data and precomputed backtests"
             git push
           else
             echo "No new draws."

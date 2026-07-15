@@ -1,25 +1,42 @@
 <script setup>
-import { onMounted } from 'vue'
-import { useTotoStore } from './stores/toto'
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 
-const store = useTotoStore()
-// Prime the disclaimer text early so the banner is populated on first paint.
-onMounted(() => { store.fairness().catch(() => {}) })
+const route = useRoute()
+
+// Current game + section derived from the path (/toto/explore, /4d/predict, ...).
+const game = computed(() => (route.path.startsWith('/4d') ? '4d' : 'toto'))
+const section = computed(() => route.path.split('/')[2] || 'explore')
+
+const tabs = [
+  { key: 'explore', label: 'Explore' },
+  { key: 'predict', label: 'Predictions' },
+  { key: 'reality-check', label: 'Reality Check' },
+  { key: 'data', label: 'Data' },
+]
+
+const oddsLine = computed(() =>
+  game.value === '4d'
+    ? 'Singapore 4D draws are independent random events — matching the First prize is 1 in 10,000.'
+    : 'Toto draws are independent random events — no method can predict them better than chance.')
 </script>
 
 <template>
   <div class="app-shell">
     <nav class="nav">
-      <span class="brand">Toto<span class="dot">.</span>Lab</span>
-      <RouterLink to="/">Explore</RouterLink>
-      <RouterLink to="/predict">Predictions</RouterLink>
-      <RouterLink to="/reality-check">Reality Check</RouterLink>
-      <RouterLink to="/data">Data</RouterLink>
+      <span class="brand">SG&nbsp;Lottery<span class="dot">.</span>Lab</span>
+
+      <div class="game-switch">
+        <RouterLink :to="`/toto/${section}`" class="game-btn" :class="{ active: game === 'toto' }">Toto</RouterLink>
+        <RouterLink :to="`/4d/${section}`" class="game-btn" :class="{ active: game === '4d' }">4D</RouterLink>
+      </div>
+
+      <div class="tabs">
+        <RouterLink v-for="t in tabs" :key="t.key" :to="`/${game}/${t.key}`"
+          class="tab" :class="{ active: section === t.key }">{{ t.label }}</RouterLink>
+      </div>
     </nav>
 
-    <!-- KeepAlive preserves each page's state (incl. the slow backtest and
-         prediction results + rendered charts) so switching tabs is instant and
-         the expensive work runs only once per session. -->
     <RouterView v-slot="{ Component }">
       <KeepAlive>
         <component :is="Component" />
@@ -28,8 +45,8 @@ onMounted(() => { store.fairness().catch(() => {}) })
 
     <footer class="disclaimer-bar">
       <p class="disclaimer-main">
-        <strong>For entertainment only.</strong>
-        {{ store.disclaimer || 'Toto draws are independent random events — no method can predict them better than chance.' }}
+        <strong>For entertainment only.</strong> {{ oddsLine }}
+        The expected value of a ticket is negative.
       </p>
       <p class="helpline">
         Gambling problem? Call the National Problem Gambling Helpline
@@ -39,3 +56,13 @@ onMounted(() => { store.fairness().catch(() => {}) })
     </footer>
   </div>
 </template>
+
+<style scoped>
+.game-switch { display: flex; gap: 4px; margin-right: 18px; background: var(--surface-2); padding: 3px; border-radius: 9px; }
+.game-btn { padding: 6px 14px; border-radius: 7px; font-size: 13px; font-weight: 650; color: var(--text-secondary); }
+.game-btn.active { background: var(--series-1); color: #fff; }
+.tabs { display: flex; gap: 4px; overflow-x: auto; }
+.tab { padding: 8px 14px; border-radius: 8px; color: var(--text-secondary); font-size: 14px; font-weight: 500; white-space: nowrap; }
+.tab:hover { background: var(--surface-2); color: var(--text-primary); }
+.tab.active { background: var(--series-1); color: #fff; }
+</style>

@@ -39,15 +39,15 @@ def predict(
     independent sets per strategy.
     """
     def one(key: str) -> dict:
-        if key == "ml":
-            return ml.predict(df, seed=seed, count=count, sets=sets)
+        if key in ml.ML_MODEL_KEYS:
+            return ml.predict(key, df, seed=seed, count=count, sets=sets)
         return strategies.predict(key, df, seed=seed, count=count, sets=sets)
 
     if strategy == "all":
-        keys = list(strategies.STRATEGIES.keys()) + ["ml"]
+        keys = list(strategies.STRATEGIES.keys()) + ml.ML_MODEL_KEYS
         picks = [one(k) for k in keys]
     else:
-        if strategy != "ml" and strategy not in strategies.STRATEGIES:
+        if strategy not in strategies.STRATEGIES and strategy not in ml.ML_MODEL_KEYS:
             raise HTTPException(404, f"Unknown strategy '{strategy}'")
         picks = [one(strategy)]
 

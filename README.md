@@ -1,15 +1,16 @@
-# Toto.Lab — Singapore Toto Analysis & (Honest) Prediction
+# SG Lottery Lab — Singapore Toto & 4D Analysis & (Honest) Prediction
 
-A full-stack data-analysis app for Singapore Toto (6/49). It ingests real draw
-history, computes genuine statistics, generates number picks with several
-strategies (including machine learning), and — the honest centrepiece —
-**backtests every strategy against a random baseline to prove that none of them
-beats chance.**
+A full-stack data-analysis app for Singapore **Toto (6/49)** and **4D**. It
+ingests real draw history, computes genuine statistics, generates picks with
+several strategies (including three machine-learning model families), and — the
+honest centrepiece — **backtests every strategy against a random baseline to
+prove that none of them beats chance.** Switch between the two games in the nav.
 
-> ⚠️ **For entertainment only.** Toto draws are independent random events. No
-> method can predict future draws better than chance. Jackpot odds are
-> **1 in 13,983,816** and the expected value of a ticket is negative. This
-> project exists to *analyse* and to *demonstrate*, not to beat the lottery.
+> ⚠️ **For entertainment only.** Both games are independent random events. No
+> method can predict future draws better than chance. Toto jackpot odds are
+> **1 in 13,983,816**; matching the 4D First prize is **1 in 10,000**; the
+> expected value of a ticket is negative. This project exists to *analyse* and to
+> *demonstrate*, not to beat the lottery.
 
 ## Why it's built this way
 
@@ -107,47 +108,55 @@ npm install
 npm run dev        # http://localhost:5173  (proxies /api -> :8010)
 ```
 
-On first start the backend seeds SQLite from `backend/data/seed_draws.csv`
-(600 real draws, 2020–2026). The API is served under `/api`; in production the
-same FastAPI process also serves the built SPA at `/`.
+On first start the backend seeds SQLite from the bundled CSVs — Toto from
+`seed_draws.csv` (600 draws, 2020–2026) and 4D from `fourd_seed.csv` (3,772
+prize-coded draws, 1992–2018). The Toto API is under `/api`, the 4D API under
+`/api/4d`; in production the same FastAPI process also serves the built SPA at `/`.
 
 > If port 8010 is taken, pick another and update the Vite proxy target in
 > `frontend/vite.config.js`.
 
 ## Key API endpoints
 
-All under `/api`:
+Toto under `/api`, 4D under `/api/4d`:
 
 | Endpoint | What it returns |
 |---|---|
-| `GET /api/draws` · `/api/draws/latest` | Raw draw history |
-| `GET /api/stats/frequency` `/gaps` `/pairs` `/sums` `/oddeven` `/repeats` `/consecutive` `/waittime` | Descriptive stats |
-| `GET /api/stats/number/{n}` | Everything about one number |
-| `GET /api/fairness` | Randomness tests + verdicts |
-| `GET /api/predict?strategy=all&count=6&sets=1` | Picks per strategy (count = 6–12, sets = 1–10) |
-| `GET /api/backtest?test_size=150` | Walk-forward results vs random |
+| `GET /api/draws` · `/api/draws/latest` | Raw Toto draw history |
+| `GET /api/stats/frequency` `/gaps` `/pairs` `/sums` `/oddeven` `/repeats` `/consecutive` `/waittime` | Toto descriptive stats |
+| `GET /api/fairness` · `/api/predict?strategy=all` · `/api/backtest?test_size=150` | Toto fairness / picks / backtest |
+| `GET /api/4d/draws` · `/api/4d/draws/latest` | Raw 4D draw history (23 numbers/draw) |
+| `GET /api/4d/stats/digit-frequency` `/overall-digits` `/sums` `/repeats` `/patterns` `/most-drawn` `/rolling` | 4D digit stats |
+| `GET /api/4d/fairness` · `/api/4d/predict?strategy=all` · `/api/4d/backtest` | 4D fairness / picks / backtest |
 
 Interactive docs at `/docs`.
 
 ## The views
 
-1. **Explore** — one page, three sections: *Overview* (latest draw, headline
-   stats, frequency chart), *Patterns* (pair heatmap, sums, odd/even, repeats
-   from previous draw, consecutive numbers, wait-time distribution), and
-   *Number explorer* (per-number stats, rolling appearance rate, partners).
-2. **Predictions** — one pick per strategy; choose 6–12 numbers per set (Toto
-   System bets) and how many sets to generate; regenerate on click.
+Each game (Toto at `/toto/*`, 4D at `/4d/*`, switch in the nav) has four views:
+
+1. **Explore** — *Overview* (latest draw, headline stats), *Patterns*, and a
+   *Number explorer*. Toto patterns: frequency, pair heatmap, sums, odd/even,
+   repeats, consecutive, wait-time. 4D patterns: per-position digit-frequency
+   heatmap, overall digit frequency, digit-sum, repeats, most-drawn numbers,
+   rolling digit rate.
+2. **Predictions** — a pick per strategy; regenerate on click. Toto: choose 6–12
+   numbers per set (System bets) and how many sets. 4D: choose how many 4-digit
+   numbers per strategy.
 3. **Reality Check** — the honest showcase: walk-forward backtest with confidence
-   intervals against the random baseline, plus fairness tests.
-4. **Data** — searchable raw draw history.
+   intervals against the random baseline, plus fairness tests. Toto scores
+   matched numbers vs 0.735; 4D scores matched digit-positions vs 0.4.
+4. **Data** — raw draw history.
 
 ## Prediction strategies
 
-`random` (baseline), `frequency` (hot), `cold` (rarely drawn), `overdue` (due),
-`markov` (conditional co-occurrence), `contrarian` (numbers above 31 that players
-avoid — the only strategy with a real, payout-sharing rationale), and `ml`
-(gradient boosting). Each is an independent weighted sample; the backtest shows
-none beats random.
+**Toto:** `random`, `frequency` (hot), `cold`, `overdue`, `markov` (conditional
+co-occurrence), `contrarian` (numbers above 31 — the only strategy with a real,
+payout-sharing rationale). **4D:** `random`, `frequency` (hot digits per
+position), `cold`, `overdue`. **Both** add three ML model families —
+`ml_gbm` (gradient boosting), `ml_logistic` (linear), `ml_mlp` (neural net) — so
+the backtest shows that linear, tree-ensemble, and neural models all fail to beat
+random. Each strategy is an independent weighted sample.
 
 ## Tests
 

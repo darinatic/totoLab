@@ -78,12 +78,20 @@ def test_frequency_and_markov_differ_on_same_seed(draws_df):
     assert freq["sets"][0] != markov["sets"][0]
 
 
-def test_ml_returns_valid_ticket(draws_df):
-    res = ml.predict(draws_df, seed=0, count=6, sets=2)
+@pytest.mark.parametrize("model_key", ["ml_gbm", "ml_logistic", "ml_mlp"])
+def test_ml_returns_valid_ticket(draws_df, model_key):
+    res = ml.predict(model_key, draws_df, seed=0, count=6, sets=2)
+    assert res["strategy"] == model_key
     assert len(res["sets"]) == 2
     for s in res["sets"]:
         assert len(set(s)) == 6
         assert all(1 <= n <= 49 for n in s)
+
+
+def test_ml_registry_has_three_families():
+    assert ml.ML_MODEL_KEYS == ["ml_gbm", "ml_logistic", "ml_mlp"]
+    for k in ml.ML_MODEL_KEYS:
+        assert k in strategies.STRATEGY_LABELS and k in strategies.STRATEGY_BLURBS
 
 
 def test_ml_no_future_leakage_in_features():
@@ -114,7 +122,7 @@ def test_precompute_writes_valid_json(tmp_path, draws_df):
     data = json.loads(out.read_text(encoding="utf-8"))
     assert data["precomputed"] is True
     assert "generated_from_draw" in data
-    assert len(data["results"]) == 7  # 6 strategies + ml
+    assert len(data["results"]) == 9  # 6 strategies + 3 ML models
     assert "verdict" in data and "theoretical_random" in data
 
 

@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-from . import config, strategies
+from . import config, ml, strategies
 from .ml import MLPredictor
 
 ALPHA = 0.05
@@ -50,11 +50,13 @@ def run(df: pd.DataFrame, test_size: int = 150, seed: int = 0,
     rng = np.random.default_rng(seed)
 
     strat_names = list(strategies.STRATEGIES.keys())
+    ml_keys = ml.ML_MODEL_KEYS if include_ml else []
     match_series: Dict[str, List[int]] = {s: [] for s in strat_names}
-    if include_ml:
-        match_series["ml"] = []
+    for k in ml_keys:
+        match_series[k] = []
 
-    ml_model: Optional[MLPredictor] = None
+    # One re-fittable model per ML family (refit periodically to bound cost).
+    ml_models: Dict[str, Optional[MLPredictor]] = {k: None for k in ml_keys}
 
     for step, t in enumerate(test_idx):
         history = df.iloc[:t]
@@ -67,11 +69,11 @@ def run(df: pd.DataFrame, test_size: int = 150, seed: int = 0,
             pred = strategies.STRATEGIES[s](history, step_rng)
             match_series[s].append(_matches(pred["numbers"], actual))
 
-        if include_ml:
-            if ml_model is None or step % ml_refit_every == 0:
-                ml_model = MLPredictor().fit(history)
-            pred = ml_model.predict_next(history, seed=seed + t)
-            match_series["ml"].append(_matches(pred["numbers"], actual))
+        for k in ml_keys:
+            if ml_models[k] is None or step % ml_refit_every == 0:
+                ml_models[k] = MLPredictor(k).fit(history)
+            pred = ml_models[k].predict_next(history, seed=seed + t)
+            match_series[k].append(_matches(pred["numbers"], actual))
 
     baseline = config.EXPECTED_RANDOM_MATCHES  # exact, noise-free random expectation
     # Bonferroni-correct the significance threshold: we test several strategies,

@@ -2,25 +2,53 @@
 
 We reframe the impossible task (predict 6 of 49) as 49 per-number binary
 questions: "will number k appear in the next draw?" For each (draw, number) we
-build features from the history *before* that draw and train a gradient-boosting
-classifier. We then pick the 6 numbers with the highest predicted probability.
+build features from the history *before* that draw and train a classifier. We
+then pick the 6 numbers with the highest predicted probability.
 
-Spoiler, confirmed by the backtest: this performs no better than random. The
-value is demonstrating the technique and measuring it honestly, not a real edge.
+Three model families are offered - gradient boosting, logistic regression, and a
+small neural network - so the backtest can show that linear, tree-ensemble, AND
+neural models all fail to beat random. The value is demonstrating the techniques
+and measuring them honestly, not a real edge.
 """
 from __future__ import annotations
 
-from collections import Counter
+import warnings
 from typing import List, Optional
 
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.exceptions import ConvergenceWarning
+from sklearn.linear_model import LogisticRegression
+from sklearn.neural_network import MLPClassifier
 
 from . import config
 
 # recent-window sizes used for frequency features
 WINDOWS = (10, 25, 50)
+
+
+def _build_gbm():
+    return GradientBoostingClassifier(
+        n_estimators=60, max_depth=3, learning_rate=0.1, random_state=0
+    )
+
+
+def _build_logistic():
+    return LogisticRegression(max_iter=1000, random_state=0)
+
+
+def _build_mlp():
+    return MLPClassifier(hidden_layer_sizes=(16,), max_iter=200, random_state=0)
+
+
+# The ML model registry. Each key is also a strategy key in strategies.STRATEGY_LABELS.
+ML_BUILDERS = {
+    "ml_gbm": _build_gbm,
+    "ml_logistic": _build_logistic,
+    "ml_mlp": _build_mlp,
+}
+ML_MODEL_KEYS = list(ML_BUILDERS)
 
 
 def _features_for_draw(history_numbers: List[List[int]], number: int) -> List[float]:
@@ -62,20 +90,21 @@ def build_dataset(df: pd.DataFrame, min_history: int = 50):
 
 
 class MLPredictor:
-    """Thin wrapper around a gradient-boosting classifier."""
+    """Thin wrapper around one of the registered classifiers."""
 
-    def __init__(self) -> None:
-        self.model: Optional[GradientBoostingClassifier] = None
+    def __init__(self, model_key: str = "ml_gbm") -> None:
+        self.model_key = model_key
+        self.model = None
 
     def fit(self, df: pd.DataFrame, min_history: int = 50) -> "MLPredictor":
         X, y = build_dataset(df, min_history)
         if len(X) == 0 or len(set(y)) < 2:
             self.model = None
             return self
-        self.model = GradientBoostingClassifier(
-            n_estimators=60, max_depth=3, learning_rate=0.1, random_state=0
-        )
-        self.model.fit(X, y)
+        self.model = ML_BUILDERS[self.model_key]()
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", ConvergenceWarning)
+            self.model.fit(X, y)
         return self
 
     def proba(self, df: pd.DataFrame) -> dict:
@@ -94,19 +123,19 @@ class MLPredictor:
         return {"numbers": nums}
 
 
-def predict(df: pd.DataFrame, seed: int | None = None,
+def predict(model_key: str, df: pd.DataFrame, seed: int | None = None,
             count: int = config.PICK, sets: int = 1) -> dict:
-    """Train on the whole history, then produce `sets` picks of `count` numbers.
+    """Train `model_key` on the whole history, then produce `sets` picks.
 
     Set 1 is the model's actual top-`count` by probability; any further sets are
     sampled in proportion to those probabilities for variety.
     """
     from . import strategies  # local import avoids a cycle
-    scores = MLPredictor().fit(df).proba(df)
+    scores = MLPredictor(model_key).fit(df).proba(df)
     top = sorted(sorted(config.POOL, key=lambda n: scores[n], reverse=True)[:count])
     out = [top]
-    rng = strategies._make_rng(seed, "ml")
+    rng = strategies._make_rng(seed, model_key)
     for _ in range(max(1, sets) - 1):
         out.append(strategies._weighted_sample(scores, rng, count))
-    return {"strategy": "ml", "label": strategies.STRATEGY_LABELS["ml"],
-            "blurb": strategies.STRATEGY_BLURBS["ml"], "sets": out}
+    return {"strategy": model_key, "label": strategies.STRATEGY_LABELS[model_key],
+            "blurb": strategies.STRATEGY_BLURBS[model_key], "sets": out}

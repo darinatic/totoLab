@@ -78,6 +78,30 @@ export function distributionBar(items, labelKey, valueKey, t, color, opts = {}) 
   }
 }
 
+// Position (y) x digit (x) heatmap of First-prize digit frequency.
+export function digitHeatmap(positions, t) {
+  const cells = []
+  let max = 0
+  positions.forEach((pos, y) => {
+    pos.digits.forEach((d) => {
+      cells.push([d.digit, y, d.count])
+      max = Math.max(max, d.count)
+    })
+  })
+  return {
+    ...baseOption(t),
+    grid: { left: 74, right: 20, top: 16, bottom: 46, containLabel: true },
+    tooltip: { ...baseOption(t).tooltip,
+      formatter: (p) => `Position ${p.value[1] + 1}, digit ${p.value[0]}<br/>${p.value[2]} times` },
+    xAxis: catAxis(t, [...Array(10).keys()], { name: 'digit', nameLocation: 'middle', nameGap: 26,
+      nameTextStyle: { color: t.muted, fontSize: 11 } }),
+    yAxis: catAxis(t, positions.map((_, i) => `Position ${i + 1}`)),
+    visualMap: { min: 0, max, calculable: true, orient: 'horizontal', left: 'center', bottom: 4,
+      inRange: { color: ['#cde2fb', '#3987e5', '#0d366b'] }, textStyle: { color: t.muted, fontSize: 10 } },
+    series: [{ type: 'heatmap', data: cells, itemStyle: { borderColor: t.surface, borderWidth: 2 } }],
+  }
+}
+
 export function rollingLine(rolling, expectedRate, t) {
   return {
     ...baseOption(t),

@@ -17,6 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/app ./app
 COPY backend/data/seed_draws.csv ./data/seed_draws.csv
+COPY backend/data/fourd_seed.csv ./data/fourd_seed.csv
 COPY --from=frontend /fe/dist ./static
 
 ENV TOTO_STATIC_DIR=/app/static

@@ -1,5 +1,6 @@
 {
   "test_size": 150,
+  "small_sample": false,
   "theoretical_random": 0.7347,
   "sig_threshold": 0.0063,
   "results": [
@@ -90,13 +91,13 @@
     {
       "strategy": "ml_gbm",
       "label": "ML - gradient boosting",
-      "mean_matches": 0.7267,
-      "ci_low": 0.6133,
-      "ci_high": 0.8467,
+      "mean_matches": 0.7133,
+      "ci_low": 0.6,
+      "ci_high": 0.84,
       "hit_rate_3plus": 0.0133,
       "best_match": 3,
       "n_tests": 150,
-      "p_vs_random": 0.5555,
+      "p_vs_random": 0.6439,
       "beats_random": false
     },
     {

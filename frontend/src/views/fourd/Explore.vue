@@ -1,6 +1,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useFourdStore } from '../../stores/fourd'
+import { useUiStore } from '../../stores/ui'
+import { useWindowReload } from '../../composables/useWindowReload'
 import { fourd } from '../../api/fourd'
 import { tokens, themeVersion } from '../../charts'
 import * as B from '../../chartBuilders'
@@ -9,6 +12,7 @@ import StatTile from '../../components/StatTile.vue'
 import EChart from '../../components/EChart.vue'
 
 const store = useFourdStore()
+const { windowLabel, window: dataWindow } = storeToRefs(useUiStore())
 const d = ref({})
 const loading = ref(true)
 
@@ -28,7 +32,8 @@ async function loadRolling() {
   rolling.value = await fourd.rolling(rollPos.value, rollDigit.value)
 }
 
-onMounted(async () => {
+async function load() {
+  loading.value = true
   const [latest, freq, overall, sums, repeats, patterns, mostDrawn, fairness] =
     await Promise.all([
       store.latest(), store.digitFrequency('first'), store.overallDigits(), store.sums(),
@@ -37,7 +42,10 @@ onMounted(async () => {
   d.value = { latest, freq, overall, sums, repeats, patterns, mostDrawn, fairness }
   await Promise.all([lookup(), loadRolling()])
   loading.value = false
-})
+}
+
+onMounted(load)
+useWindowReload(load)
 
 const heatOpt = computed(() => (themeVersion.value, d.value.freq ? B.digitHeatmap(d.value.freq.positions, tokens()) : {}))
 const overallOpt = computed(() => (themeVersion.value, d.value.overall
@@ -56,6 +64,10 @@ function scrollTo(id) { document.getElementById(id)?.scrollIntoView({ behavior: 
   <div class="container">
     <h1 class="page-title">Explore — 4D</h1>
     <p class="page-sub">Digit patterns across all 23 winning numbers, focused on the First prize.</p>
+    <p v-if="dataWindow !== 'all' && d.freq" class="window-note">
+      Analysing <strong>{{ windowLabel }}</strong> ({{ d.freq.n_draws }} draws). Smaller
+      windows show more spurious-looking patterns — none of them predict the next draw.
+    </p>
 
     <div v-if="loading" class="loading">Loading analysis…</div>
 

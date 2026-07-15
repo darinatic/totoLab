@@ -1,6 +1,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useTotoStore } from '../stores/toto'
+import { useUiStore } from '../stores/ui'
+import { useWindowReload } from '../composables/useWindowReload'
 import { api } from '../api/client'
 import { tokens, themeVersion } from '../charts'
 import * as B from '../chartBuilders'
@@ -9,6 +12,7 @@ import StatTile from '../components/StatTile.vue'
 import EChart from '../components/EChart.vue'
 
 const store = useTotoStore()
+const { windowLabel, window: dataWindow } = storeToRefs(useUiStore())
 const d = ref({}) // all datasets keyed by name
 const loading = ref(true)
 
@@ -22,7 +26,8 @@ async function pickNumber(n) {
   numberDetail.value = await api.numberDetail(n)
 }
 
-onMounted(async () => {
+async function load() {
+  loading.value = true
   const [latest, freq, fairness, pairs, sums, oddeven, repeats, consecutive, waittime] =
     await Promise.all([
       store.latest(), store.frequency(), store.fairness(), store.pairs(),
@@ -31,7 +36,10 @@ onMounted(async () => {
   d.value = { latest, freq, fairness, pairs, sums, oddeven, repeats, consecutive, waittime }
   await pickNumber(selected.value)
   loading.value = false
-})
+}
+
+onMounted(load)
+useWindowReload(load)
 
 const hottest = computed(() =>
   d.value.freq ? [...d.value.freq.numbers].sort((a, b) => b.count - a.count)[0] : null)
@@ -74,6 +82,10 @@ function scrollTo(id) {
   <div class="container">
     <h1 class="page-title">Explore</h1>
     <p class="page-sub">Overview, patterns, and per-number history — all the honest analysis in one place.</p>
+    <p v-if="dataWindow !== 'all' && d.freq" class="window-note">
+      Analysing <strong>{{ windowLabel }}</strong> ({{ d.freq.n_draws }} draws). Smaller
+      windows show more spurious-looking patterns — none of them predict the next draw.
+    </p>
 
     <div v-if="loading" class="loading">Loading analysis…</div>
 

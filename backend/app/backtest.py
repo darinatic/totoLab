@@ -45,7 +45,8 @@ def run(df: pd.DataFrame, test_size: int = 150, seed: int = 0,
     the theoretical random expectation for reference.
     """
     n = len(df)
-    start = max(config.PICK * 10, n - test_size)  # keep a warm-up history
+    # Adaptive warm-up floor so a small lookback window still yields a test set.
+    start = max(min(60, n // 2), n - test_size)
     test_idx = list(range(start, n))
     rng = np.random.default_rng(seed)
 
@@ -118,6 +119,7 @@ def run(df: pd.DataFrame, test_size: int = 150, seed: int = 0,
 
     return {
         "test_size": len(test_idx),
+        "small_sample": len(test_idx) < 40,
         "theoretical_random": round(baseline, 4),
         "sig_threshold": round(sig_threshold, 4),
         "results": results,

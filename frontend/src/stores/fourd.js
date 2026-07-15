@@ -1,15 +1,17 @@
 import { defineStore } from 'pinia'
 import { fourd } from '../api/fourd'
+import { useUiStore } from './ui'
 
 // Caching store for 4D datasets (same fetch-once pattern as the Toto store).
 export const useFourdStore = defineStore('fourd', {
   state: () => ({ cache: {}, disclaimer: '' }),
   actions: {
     async load(key, fetcher) {
-      if (this.cache[key]) return this.cache[key]
+      const fullKey = `${useUiStore().window}:${key}`
+      if (this.cache[fullKey]) return this.cache[fullKey]
       const data = await fetcher()
       if (data && data.disclaimer) this.disclaimer = data.disclaimer
-      this.cache[key] = data
+      this.cache[fullKey] = data
       return data
     },
     latest() { return this.load('latest', fourd.latest) },

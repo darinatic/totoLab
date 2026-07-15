@@ -38,7 +38,8 @@ def _bootstrap_ci(values: np.ndarray, rng: np.random.Generator,
 def run(df: pd.DataFrame, test_size: int = 150, seed: int = 0,
         ml_refit_every: int = 30, include_ml: bool = True) -> dict:
     n = len(df)
-    start = max(60, n - test_size)
+    # Adaptive warm-up floor so a small lookback window still yields a test set.
+    start = max(min(60, n // 2), n - test_size)
     test_idx = list(range(start, n))
     rng = np.random.default_rng(seed)
 
@@ -103,6 +104,7 @@ def run(df: pd.DataFrame, test_size: int = 150, seed: int = 0,
 
     return {
         "test_size": len(test_idx),
+        "small_sample": len(test_idx) < 40,
         "theoretical_random": round(baseline, 4),
         "exact_hit_random": round(fc.NUMBERS_PER_DRAW / 10000, 5),
         "sig_threshold": round(sig_threshold, 4),

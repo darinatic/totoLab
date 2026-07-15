@@ -19,6 +19,11 @@ ERA_6_49_START = "2014-10-01"
 #   6 * (6/49) = 0.7346...  (linearity of expectation)
 EXPECTED_RANDOM_MATCHES = PICK * PICK / POOL_SIZE
 
+# Lookback-window presets (shared by both games): key -> months back from the
+# latest draw, or None for all history. A window changes which numbers a heuristic
+# favours but NOT the odds - the backtest proves no window beats random.
+WINDOW_MONTHS = {"all": None, "1y": 12, "6m": 6, "3m": 3}
+
 # --- Paths ---
 BASE_DIR = Path(__file__).resolve().parent.parent          # backend/
 DATA_DIR = BASE_DIR / "data"

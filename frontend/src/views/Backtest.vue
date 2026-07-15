@@ -1,11 +1,15 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import { api } from '../api/client'
 import { useTotoStore } from '../stores/toto'
+import { useUiStore } from '../stores/ui'
+import { useWindowReload } from '../composables/useWindowReload'
 import { tokens, baseOption, themeVersion } from '../charts'
 import EChart from '../components/EChart.vue'
 
 const store = useTotoStore()
+const { windowLabel, window: dataWindow } = storeToRefs(useUiStore())
 const bt = ref(null)
 const fairness = ref(null)
 const testSize = ref(150)
@@ -14,7 +18,7 @@ const loading = ref(true)
 const running = ref(false)
 const isPrecomputed = ref(false)
 
-// Live run for the current settings (the "Run backtest" button).
+// Live run for the current settings + window (the "Run backtest" button).
 async function run() {
   running.value = true
   isPrecomputed.value = false
@@ -28,9 +32,13 @@ async function run() {
   loading.value = false
 }
 
-// First view: load the static precomputed default (instant), else run live.
+// The precomputed static result only exists for the default All-time window.
 async function loadInitial() {
-  const [pre, f] = await Promise.all([api.precomputedBacktest(), store.fairness()])
+  loading.value = true
+  const [pre, f] = await Promise.all([
+    dataWindow.value === 'all' ? api.precomputedBacktest() : Promise.resolve(null),
+    store.fairness(),
+  ])
   fairness.value = f
   if (pre) {
     bt.value = pre
@@ -41,6 +49,7 @@ async function loadInitial() {
   }
 }
 loadInitial()
+useWindowReload(loadInitial)
 
 // Horizontal bars = mean matches per strategy; a custom overlay draws the 95%
 // bootstrap CI as an error bar; a markLine marks the theoretical random value.
@@ -143,6 +152,14 @@ const option = computed(() => {
           {{ bt.any_beats_random ? '⚠ A strategy edged ahead (noise)' : '✓ Nothing beats random' }}
         </span>
         <p class="hint" style="margin-top: 12px">{{ bt.verdict }}</p>
+        <p v-if="dataWindow !== 'all'" class="hint" style="margin-top: 8px">
+          Trained on <strong>{{ windowLabel }}</strong> of draws. The random baseline is a
+          fixed constant, so the window only changes the training data and sample size — not
+          the yardstick. No window beats random.
+        </p>
+        <p v-if="bt.small_sample" class="hint" style="margin-top: 8px">
+          ⚠ Small sample ({{ bt.test_size }} test draws) — confidence intervals are wide.
+        </p>
         <p v-if="isPrecomputed" class="hint" style="margin-top: 8px">
           Showing the latest precomputed run (through draw {{ bt.generated_from_draw }}).
           Adjust the settings above and press <strong>Run backtest</strong> to recompute live.

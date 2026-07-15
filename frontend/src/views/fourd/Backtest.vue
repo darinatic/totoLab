@@ -1,11 +1,15 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import { fourd } from '../../api/fourd'
 import { useFourdStore } from '../../stores/fourd'
+import { useUiStore } from '../../stores/ui'
+import { useWindowReload } from '../../composables/useWindowReload'
 import { tokens, baseOption, themeVersion } from '../../charts'
 import EChart from '../../components/EChart.vue'
 
 const store = useFourdStore()
+const { windowLabel, window: dataWindow } = storeToRefs(useUiStore())
 const bt = ref(null)
 const fairness = ref(null)
 const testSize = ref(150)
@@ -22,12 +26,17 @@ async function run() {
 }
 
 async function loadInitial() {
-  const [pre, f] = await Promise.all([fourd.precomputedBacktest(), store.fairness()])
+  loading.value = true
+  const [pre, f] = await Promise.all([
+    dataWindow.value === 'all' ? fourd.precomputedBacktest() : Promise.resolve(null),
+    store.fairness(),
+  ])
   fairness.value = f
   if (pre) { bt.value = pre; isPrecomputed.value = true; loading.value = false }
   else await run()
 }
 loadInitial()
+useWindowReload(loadInitial)
 
 const option = computed(() => {
   themeVersion.value
@@ -103,6 +112,14 @@ const option = computed(() => {
           {{ bt.any_beats_random ? '⚠ A strategy edged ahead (noise)' : '✓ Nothing beats random' }}
         </span>
         <p class="hint" style="margin-top: 12px">{{ bt.verdict }}</p>
+        <p v-if="dataWindow !== 'all'" class="hint" style="margin-top: 8px">
+          Trained on <strong>{{ windowLabel }}</strong> of draws. The random baseline is a
+          fixed constant, so the window only changes the training data and sample size — not
+          the yardstick. No window beats random.
+        </p>
+        <p v-if="bt.small_sample" class="hint" style="margin-top: 8px">
+          ⚠ Small sample ({{ bt.test_size }} test draws) — confidence intervals are wide.
+        </p>
         <p v-if="isPrecomputed" class="hint" style="margin-top: 8px">
           Showing the latest precomputed run (through draw {{ bt.generated_from_draw }}).
           Adjust the settings above and press <strong>Run backtest</strong> to recompute live.

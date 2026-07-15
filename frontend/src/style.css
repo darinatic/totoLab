@@ -183,6 +183,13 @@ button.btn.ghost, select.btn.ghost {
 .disclaimer-bar .helpline a:hover { text-decoration: underline; }
 
 .hint { color: var(--muted); font-size: 13px; }
+.window-note {
+  background: color-mix(in srgb, var(--series-1) 8%, var(--surface-1));
+  border: 1px solid var(--border); border-left: 3px solid var(--series-1);
+  border-radius: 8px; padding: 10px 14px; margin: -6px 0 18px;
+  font-size: 13px; color: var(--text-secondary);
+}
+.window-note strong { color: var(--text-primary); }
 .loading { color: var(--muted); padding: 40px; text-align: center; }
 .number-input {
   font-family: var(--font); font-size: 14px; padding: 7px 10px;

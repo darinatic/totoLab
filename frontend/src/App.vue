@@ -1,8 +1,12 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useUiStore, WINDOWS } from './stores/ui'
 
 const route = useRoute()
+const ui = useUiStore()
+const { window: dataWindow } = storeToRefs(ui)
 
 // Current game + section derived from the path (/toto/explore, /4d/predict, ...).
 const game = computed(() => (route.path.startsWith('/4d') ? '4d' : 'toto'))
@@ -35,6 +39,13 @@ const oddsLine = computed(() =>
         <RouterLink v-for="t in tabs" :key="t.key" :to="`/${game}/${t.key}`"
           class="tab" :class="{ active: section === t.key }">{{ t.label }}</RouterLink>
       </div>
+
+      <label class="window-select" title="Restrict analysis and predictions to recent draws">
+        <span>Window</span>
+        <select class="btn ghost" v-model="dataWindow">
+          <option v-for="w in WINDOWS" :key="w.key" :value="w.key">{{ w.label }}</option>
+        </select>
+      </label>
     </nav>
 
     <RouterView v-slot="{ Component }">
@@ -65,4 +76,7 @@ const oddsLine = computed(() =>
 .tab { padding: 8px 14px; border-radius: 8px; color: var(--text-secondary); font-size: 14px; font-weight: 500; white-space: nowrap; }
 .tab:hover { background: var(--surface-2); color: var(--text-primary); }
 .tab.active { background: var(--series-1); color: #fff; }
+.window-select { margin-left: auto; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.window-select span { color: var(--muted); font-size: 12px; font-weight: 600; }
+.window-select select { padding: 6px 8px; font-size: 13px; }
 </style>

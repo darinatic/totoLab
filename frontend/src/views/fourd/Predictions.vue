@@ -1,8 +1,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { fourd } from '../../api/fourd'
+import { useUiStore } from '../../stores/ui'
+import { useWindowReload } from '../../composables/useWindowReload'
 import FourDigits from '../../components/FourDigits.vue'
 
+const { windowLabel, window: dataWindow } = storeToRefs(useUiStore())
 const picks = ref([])
 const nextAfter = ref('')
 const seed = ref(1)
@@ -18,6 +22,7 @@ async function generate() {
 }
 function regenerate() { seed.value = Math.floor(Math.random() * 100000); generate() }
 onMounted(generate)
+useWindowReload(generate)
 </script>
 
 <template>
@@ -26,6 +31,10 @@ onMounted(generate)
     <p class="page-sub">
       Seven strategies, each suggesting numbers for the draw after {{ nextAfter }}. They look
       different but are statistically equivalent to random — that's the whole point.
+    </p>
+    <p v-if="dataWindow !== 'all'" class="window-note">
+      Weighted by <strong>{{ windowLabel }}</strong> of draws. This changes which digits are
+      favoured but does <strong>not</strong> improve your odds — the draw has no memory.
     </p>
 
     <div class="controls">

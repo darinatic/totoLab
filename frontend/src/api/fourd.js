@@ -1,8 +1,12 @@
 // 4D API client. Endpoints live under /api/4d; the precomputed backtest is a
 // static asset at the site root, mirroring the Toto client.
+import { useUiStore } from '../stores/ui'
+
 const BASE = (import.meta.env.VITE_API_BASE || '/api') + '/4d'
 
 async function get(path) {
+  const w = useUiStore().window
+  if (w && w !== 'all') path += (path.includes('?') ? '&' : '?') + 'window=' + w
   const res = await fetch(`${BASE}${path}`, { cache: 'no-store' })
   if (!res.ok) {
     const body = await res.text().catch(() => '')

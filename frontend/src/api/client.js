@@ -1,8 +1,13 @@
 // Thin fetch wrapper. In dev, calls go to /api/* which Vite proxies to the
 // backend; in production set VITE_API_BASE to the deployed API origin.
+import { useUiStore } from '../stores/ui'
+
 const BASE = import.meta.env.VITE_API_BASE || '/api'
 
 async function get(path) {
+  // Auto-append the global lookback window to every data request.
+  const w = useUiStore().window
+  if (w && w !== 'all') path += (path.includes('?') ? '&' : '?') + 'window=' + w
   // API data must never be served from the browser's HTTP cache.
   const res = await fetch(`${BASE}${path}`, { cache: 'no-store' })
   if (!res.ok) {

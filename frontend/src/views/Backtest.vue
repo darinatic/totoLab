@@ -196,6 +196,9 @@ const option = computed(() => {
             </tr>
           </tbody>
         </table>
+        <p v-if="fairness.significance_note" class="hint" style="margin-top: 10px">
+          {{ fairness.significance_note }}
+        </p>
       </div>
     </template>
   </div>

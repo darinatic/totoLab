@@ -24,7 +24,7 @@ onMounted(load)
 <template>
   <div class="container">
     <h1 class="page-title">Draw History — 4D</h1>
-    <p class="page-sub">{{ total }} draws (standard 23-number format since 1992), newest first.</p>
+    <p class="page-sub">{{ total }} draws (official Singapore Pools results), newest first.</p>
 
     <div class="controls">
       <span class="hint">Showing draws {{ offset + 1 }}–{{ Math.min(offset + limit, total) }}</span>

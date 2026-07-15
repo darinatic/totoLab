@@ -15,7 +15,11 @@ from scipy import stats
 from . import config
 from .analysis import _main_number_series
 
-ALPHA = 0.05
+# Bonferroni-corrected threshold for the 3-test suite: with 3 tests, ~14% of fair
+# datasets would trip at least one at 0.05, so the per-test flag uses 0.05/3 to
+# keep the "is it fair?" verdict honest (raw p-values are always shown).
+N_TESTS = 3
+ALPHA = 0.05 / N_TESTS
 
 
 def chi_square_uniform(df: pd.DataFrame) -> dict:
@@ -108,5 +112,9 @@ def run_all(df: pd.DataFrame) -> dict:
         "n_draws": len(df),
         "tests": tests,
         "overall_passes": all(t["passes"] for t in tests),
+        "significance_note": (
+            f"Threshold Bonferroni-corrected for {N_TESTS} tests "
+            f"(alpha = {ALPHA:.4f}); raw p-values shown."
+        ),
         "disclaimer": config.DISCLAIMER,
     }

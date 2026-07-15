@@ -37,9 +37,9 @@ FOURD_PRECOMPUTE_BACKTEST = Path(os.environ.get(
     config.BASE_DIR.parent / "frontend" / "public" / "precomputed" / "4d_backtest.json",
 ))
 
-# --- Data source (current aggregator for ongoing refresh) ---
-SOURCE_URL = "https://lottery.nestia.com/4d"
-SOURCE_USER_AGENT = config.SOURCE_USER_AGENT
+# --- Data source: the official Singapore Pools 4D results archive (see
+# fourd_ingest, which addresses each draw by number). ---
+SOURCE_URL = "https://www.singaporepools.com.sg/en/product/pages/4d_results.aspx"
 
 DISCLAIMER = (
     "Singapore 4D draws are independent random events. No method can predict "

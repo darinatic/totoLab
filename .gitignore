@@ -13,6 +13,9 @@ frontend/dist/
 .playwright-mcp/
 *.png
 
+# Build temp (redirected here when the system temp drive is full)
+.buildtmp/
+
 # Editor / OS
 .DS_Store
 .vscode/

@@ -15,9 +15,14 @@ from scipy import stats
 from . import fourd_config as fc
 
 ALPHA = 0.05
+N_TESTS = 4
+# Bonferroni-corrected threshold: with 4 tests, ~19% of fair datasets would trip
+# at least one at 0.05, so the per-test flag uses 0.05/4 to keep the "is it fair?"
+# verdict honest (the raw p-value is always shown).
+CORRECTED_ALPHA = ALPHA / N_TESTS
 
 
-def chi_square_digits(df: pd.DataFrame) -> dict:
+def chi_square_digits(df: pd.DataFrame, alpha: float = CORRECTED_ALPHA) -> dict:
     """Chi-square GOF: are digits 0-9 uniform across the First prize's positions?"""
     digits = [d for digs in df["first_digits"] for d in digs]
     counts = Counter(digits)
@@ -29,17 +34,17 @@ def chi_square_digits(df: pd.DataFrame) -> dict:
         "statistic": round(float(chi2), 3),
         "df": fc.N_DIGITS - 1,
         "p_value": round(float(p), 4),
-        "passes": bool(p > ALPHA),
+        "passes": bool(p > alpha),
         "verdict": (
             "Consistent with a fair draw - no digit is significantly over- or "
             "under-represented."
-            if p > ALPHA else
+            if p > alpha else
             "Digits deviate from uniform more than chance would suggest."
         ),
     }
 
 
-def chi_square_by_position(df: pd.DataFrame) -> dict:
+def chi_square_by_position(df: pd.DataFrame, alpha: float = CORRECTED_ALPHA) -> dict:
     """Chi-square per position - flags if any single position is biased."""
     worst_p = 1.0
     per = []
@@ -50,8 +55,7 @@ def chi_square_by_position(df: pd.DataFrame) -> dict:
         _, p = stats.chisquare(observed, expected)
         per.append({"position": pos + 1, "p_value": round(float(p), 4)})
         worst_p = min(worst_p, float(p))
-    # Bonferroni across the 4 positions
-    passes = worst_p > ALPHA / fc.POSITIONS
+    passes = worst_p > alpha / fc.POSITIONS  # also correct across the 4 positions
     return {
         "test": "Chi-square per position (each digit slot uniform)",
         "positions": per,
@@ -62,7 +66,7 @@ def chi_square_by_position(df: pd.DataFrame) -> dict:
     }
 
 
-def runs_test_parity(df: pd.DataFrame) -> dict:
+def runs_test_parity(df: pd.DataFrame, alpha: float = CORRECTED_ALPHA) -> dict:
     """Runs test on the parity of the First prize's digit sum."""
     seq = np.array([sum(digs) % 2 for digs in df["first_digits"]])
     n1 = int(seq.sum()); n0 = int(len(seq) - n1); n = n0 + n1
@@ -77,13 +81,13 @@ def runs_test_parity(df: pd.DataFrame) -> dict:
     return {
         "test": "Runs test (parity of First-prize digit sum)",
         "runs": runs, "expected_runs": round(float(exp), 2), "z": round(float(z), 3),
-        "p_value": round(float(p), 4), "passes": bool(p > ALPHA),
-        "verdict": ("No significant serial pattern across draws." if p > ALPHA
+        "p_value": round(float(p), 4), "passes": bool(p > alpha),
+        "verdict": ("No significant serial pattern across draws." if p > alpha
                     else "Draws show serial clustering beyond chance."),
     }
 
 
-def autocorrelation_sum(df: pd.DataFrame, lag: int = 1) -> dict:
+def autocorrelation_sum(df: pd.DataFrame, lag: int = 1, alpha: float = CORRECTED_ALPHA) -> dict:
     """Lag-`lag` autocorrelation of the First prize's digit sum."""
     s = np.array([sum(digs) for digs in df["first_digits"]], dtype=float)
     if len(s) <= lag + 1:
@@ -92,9 +96,9 @@ def autocorrelation_sum(df: pd.DataFrame, lag: int = 1) -> dict:
     r, p = stats.pearsonr(s[:-lag], s[lag:])
     return {
         "test": f"Autocorrelation (lag {lag}) of digit sums",
-        "r": round(float(r), 4), "p_value": round(float(p), 4), "passes": bool(p > ALPHA),
+        "r": round(float(r), 4), "p_value": round(float(p), 4), "passes": bool(p > alpha),
         "verdict": ("No significant correlation between consecutive draws - as expected "
-                    "for independent random events." if p > ALPHA
+                    "for independent random events." if p > alpha
                     else "Consecutive draws are correlated beyond chance."),
     }
 
@@ -106,5 +110,9 @@ def run_all(df: pd.DataFrame) -> dict:
         "n_draws": len(df),
         "tests": tests,
         "overall_passes": all(t["passes"] for t in tests),
+        "significance_note": (
+            f"Threshold Bonferroni-corrected for {N_TESTS} tests "
+            f"(alpha = {CORRECTED_ALPHA:.4f}); raw p-values shown."
+        ),
         "disclaimer": fc.DISCLAIMER,
     }

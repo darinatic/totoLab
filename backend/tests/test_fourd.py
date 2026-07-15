@@ -8,26 +8,36 @@ from app import (fourd_analysis as fa, fourd_backtest as fbt, fourd_config as fc
                  fourd_ml as fml, fourd_strategies as fs)
 from tests.conftest import _make_fourd_df
 
+# Minimal HTML mirroring the official Singapore Pools results-page structure.
 SAMPLE_DRAW_HTML = """
-<div>1st 1234 2nd 5678 3rd 9012
-Starter Prizes 1111 2222 3333 4444 5555 6666 7777 8888 9999 0000
-Consolation Prizes 1010 2020 3030 4040 5050 6060 7070 8080 9090 0101</div>
+<div>Sun, 12 Jul 2026 <span>Draw No. 5508</span>
+<div>1st Prize 1234</div><div>2nd Prize 5678</div><div>3rd Prize 9012</div>
+<div>Starter Prizes</div>
+<tbody class="tbodyStarter"><tr>
+<td>1111</td><td>2222</td><td>3333</td><td>4444</td><td>5555</td>
+<td>6666</td><td>7777</td><td>8888</td><td>9999</td><td>0000</td></tr></tbody>
+<div>Consolation Prizes</div>
+<tbody class="tbodyConsolation"><tr>
+<td>1010</td><td>2020</td><td>3030</td><td>4040</td><td>5050</td>
+<td>6060</td><td>7070</td><td>8080</td><td>9090</td><td>0101</td></tr></tbody>
+</div>
 """
 
 
 # --- ingest / db ---
-def test_parse_draw_page():
-    entries = ing.parse_draw_page(SAMPLE_DRAW_HTML)
+def test_parse_page():
+    parsed = ing.parse_page(SAMPLE_DRAW_HTML)
+    assert parsed["draw_no"] == 5508
+    assert parsed["draw_date"] == "2026-07-12"
+    entries = parsed["entries"]
     assert len(entries) == 23
     comp = {c: sum(1 for x, _ in entries if x == c) for c in fc.PRIZE_CODES}
     assert comp == {"1": 1, "2": 1, "3": 1, "S": 10, "C": 10}
     assert entries[0] == ("1", "1234")
 
 
-def test_parse_all_draws():
-    html = 'var ALL_DRAWS =[{"draw_id":"5508","draw_at":"x","link":"/4d/2026-07-12-draw-5508"}];'
-    draws = ing.parse_all_draws(html)
-    assert draws == [{"draw_id": 5508, "date": "2026-07-12", "link": "/4d/2026-07-12-draw-5508"}]
+def test_parse_page_rejects_incomplete():
+    assert ing.parse_page("<div>no draw here</div>") is None
 
 
 def test_seed_and_load(tmp_path):

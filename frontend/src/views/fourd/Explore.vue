@@ -68,7 +68,7 @@ function scrollTo(id) { document.getElementById(id)?.scrollIntoView({ behavior: 
 
       <h2 id="overview" class="section-title">Overview</h2>
       <div class="grid cols-3" style="margin-bottom: 16px">
-        <StatTile :value="d.freq.n_draws" label="Draws analysed (since 1992)" />
+        <StatTile :value="d.freq.n_draws" label="Draws analysed (official results)" />
         <StatTile value="1 in 10,000" label="First prize odds (fixed, unbeatable)" />
         <StatTile :value="d.patterns.patterns[0].pct + '%'" label="First prize all-different" />
       </div>

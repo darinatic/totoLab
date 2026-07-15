@@ -109,9 +109,10 @@ npm run dev        # http://localhost:5173  (proxies /api -> :8010)
 ```
 
 On first start the backend seeds SQLite from the bundled CSVs — Toto from
-`seed_draws.csv` (600 draws, 2020–2026) and 4D from `fourd_seed.csv` (3,772
-prize-coded draws, 1992–2018). The Toto API is under `/api`, the 4D API under
-`/api/4d`; in production the same FastAPI process also serves the built SPA at `/`.
+`seed_draws.csv` (600 draws, 2020–2026) and 4D from `fourd_seed.csv` (~470 draws,
+2023–2026, scraped from the official Singapore Pools results archive by draw
+number). The Toto API is under `/api`, the 4D API under `/api/4d`; in production
+the same FastAPI process also serves the built SPA at `/`.
 
 > If port 8010 is taken, pick another and update the Vite proxy target in
 > `frontend/vite.config.js`.

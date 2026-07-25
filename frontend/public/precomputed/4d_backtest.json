@@ -9,8 +9,8 @@
       "strategy": "random",
       "label": "Random baseline",
       "mean_matches": 0.4933,
-      "ci_low": 0.3933,
-      "ci_high": 0.6,
+      "ci_low": 0.3998,
+      "ci_high": 0.5935,
       "hit_any_rate": 0.00667,
       "best_match": 3,
       "n_tests": 150,
@@ -18,23 +18,11 @@
       "beats_random": false
     },
     {
-      "strategy": "ml_mlp",
-      "label": "ML - neural net (MLP)",
-      "mean_matches": 0.4733,
-      "ci_low": 0.38,
-      "ci_high": 0.5733,
-      "hit_any_rate": 0.0,
-      "best_match": 3,
-      "n_tests": 150,
-      "p_vs_random": 0.0785,
-      "beats_random": false
-    },
-    {
       "strategy": "frequency",
       "label": "Hot (frequent digits)",
       "mean_matches": 0.4533,
-      "ci_low": 0.3533,
-      "ci_high": 0.5535,
+      "ci_low": 0.36,
+      "ci_high": 0.56,
       "hit_any_rate": 0.0,
       "best_match": 3,
       "n_tests": 150,
@@ -42,15 +30,39 @@
       "beats_random": false
     },
     {
-      "strategy": "cold",
-      "label": "Cold (rare digits)",
-      "mean_matches": 0.42,
-      "ci_low": 0.32,
-      "ci_high": 0.5202,
+      "strategy": "ml_mlp",
+      "label": "ML - neural net (MLP)",
+      "mean_matches": 0.4467,
+      "ci_low": 0.3467,
+      "ci_high": 0.56,
       "hit_any_rate": 0.0,
       "best_match": 3,
       "n_tests": 150,
-      "p_vs_random": 0.353,
+      "p_vs_random": 0.1943,
+      "beats_random": false
+    },
+    {
+      "strategy": "cold",
+      "label": "Cold (rare digits)",
+      "mean_matches": 0.4133,
+      "ci_low": 0.3133,
+      "ci_high": 0.5133,
+      "hit_any_rate": 0.0,
+      "best_match": 3,
+      "n_tests": 150,
+      "p_vs_random": 0.4005,
+      "beats_random": false
+    },
+    {
+      "strategy": "ml_gbm",
+      "label": "ML - gradient boosting",
+      "mean_matches": 0.3933,
+      "ci_low": 0.3,
+      "ci_high": 0.4867,
+      "hit_any_rate": 0.0,
+      "best_match": 3,
+      "n_tests": 150,
+      "p_vs_random": 0.554,
       "beats_random": false
     },
     {
@@ -66,27 +78,15 @@
       "beats_random": false
     },
     {
-      "strategy": "ml_gbm",
-      "label": "ML - gradient boosting",
-      "mean_matches": 0.32,
-      "ci_low": 0.24,
-      "ci_high": 0.4068,
-      "hit_any_rate": 0.00667,
-      "best_match": 2,
-      "n_tests": 150,
-      "p_vs_random": 0.9623,
-      "beats_random": false
-    },
-    {
       "strategy": "ml_logistic",
       "label": "ML - logistic regression",
-      "mean_matches": 0.2533,
-      "ci_low": 0.1867,
-      "ci_high": 0.3268,
+      "mean_matches": 0.2667,
+      "ci_low": 0.1933,
+      "ci_high": 0.3467,
       "hit_any_rate": 0.0,
       "best_match": 2,
       "n_tests": 150,
-      "p_vs_random": 0.9999,
+      "p_vs_random": 0.9996,
       "beats_random": false
     }
   ],
@@ -94,5 +94,5 @@
   "verdict": "No strategy beats the random baseline (0.4 matched digits) at a statistically significant level. Consistent with an unpredictable, fair lottery - exactly as expected.",
   "disclaimer": "Singapore 4D draws are independent random events. No method can predict future draws better than chance; matching the First prize is 1 in 10,000 and the expected value of a bet is negative.",
   "precomputed": true,
-  "generated_from_draw": 5512
+  "generated_from_draw": 5513
 }

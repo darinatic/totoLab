@@ -5,22 +5,10 @@
   "sig_threshold": 0.0063,
   "results": [
     {
-      "strategy": "ml_mlp",
-      "label": "ML - neural net (MLP)",
-      "mean_matches": 0.8267,
-      "ci_low": 0.6933,
-      "ci_high": 0.9533,
-      "hit_rate_3plus": 0.0333,
-      "best_match": 3,
-      "n_tests": 150,
-      "p_vs_random": 0.0763,
-      "beats_random": false
-    },
-    {
       "strategy": "overdue",
       "label": "Due (gap-weighted)",
       "mean_matches": 0.8133,
-      "ci_low": 0.6933,
+      "ci_low": 0.6865,
       "ci_high": 0.9333,
       "hit_rate_3plus": 0.0067,
       "best_match": 3,
@@ -29,15 +17,27 @@
       "beats_random": false
     },
     {
+      "strategy": "ml_mlp",
+      "label": "ML - neural net (MLP)",
+      "mean_matches": 0.7933,
+      "ci_low": 0.68,
+      "ci_high": 0.9133,
+      "hit_rate_3plus": 0.02,
+      "best_match": 3,
+      "n_tests": 150,
+      "p_vs_random": 0.1622,
+      "beats_random": false
+    },
+    {
       "strategy": "ml_logistic",
       "label": "ML - logistic regression",
-      "mean_matches": 0.7933,
-      "ci_low": 0.6733,
-      "ci_high": 0.9067,
+      "mean_matches": 0.7733,
+      "ci_low": 0.66,
+      "ci_high": 0.8933,
       "hit_rate_3plus": 0.0067,
       "best_match": 3,
       "n_tests": 150,
-      "p_vs_random": 0.1652,
+      "p_vs_random": 0.2626,
       "beats_random": false
     },
     {
@@ -55,21 +55,21 @@
     {
       "strategy": "cold",
       "label": "Cold (rarely drawn)",
-      "mean_matches": 0.7467,
-      "ci_low": 0.6333,
-      "ci_high": 0.8733,
+      "mean_matches": 0.7533,
+      "ci_low": 0.6467,
+      "ci_high": 0.88,
       "hit_rate_3plus": 0.02,
       "best_match": 3,
       "n_tests": 150,
-      "p_vs_random": 0.4229,
+      "p_vs_random": 0.3807,
       "beats_random": false
     },
     {
       "strategy": "markov",
       "label": "Co-occurrence (Markov)",
       "mean_matches": 0.72,
-      "ci_low": 0.6065,
-      "ci_high": 0.8467,
+      "ci_low": 0.6067,
+      "ci_high": 0.8468,
       "hit_rate_3plus": 0.02,
       "best_match": 3,
       "n_tests": 150,
@@ -80,8 +80,8 @@
       "strategy": "frequency",
       "label": "Hot (frequency-weighted)",
       "mean_matches": 0.7133,
-      "ci_low": 0.6,
-      "ci_high": 0.8268,
+      "ci_low": 0.6065,
+      "ci_high": 0.8333,
       "hit_rate_3plus": 0.0,
       "best_match": 2,
       "n_tests": 150,
@@ -89,27 +89,27 @@
       "beats_random": false
     },
     {
+      "strategy": "ml_gbm",
+      "label": "ML - gradient boosting",
+      "mean_matches": 0.7133,
+      "ci_low": 0.6,
+      "ci_high": 0.8267,
+      "hit_rate_3plus": 0.0133,
+      "best_match": 4,
+      "n_tests": 150,
+      "p_vs_random": 0.6403,
+      "beats_random": false
+    },
+    {
       "strategy": "random",
       "label": "Random baseline",
-      "mean_matches": 0.7067,
-      "ci_low": 0.5933,
-      "ci_high": 0.8268,
+      "mean_matches": 0.7,
+      "ci_low": 0.58,
+      "ci_high": 0.8202,
       "hit_rate_3plus": 0.0133,
       "best_match": 3,
       "n_tests": 150,
       "p_vs_random": null,
-      "beats_random": false
-    },
-    {
-      "strategy": "ml_gbm",
-      "label": "ML - gradient boosting",
-      "mean_matches": 0.6733,
-      "ci_low": 0.5598,
-      "ci_high": 0.7933,
-      "hit_rate_3plus": 0.02,
-      "best_match": 3,
-      "n_tests": 150,
-      "p_vs_random": 0.8422,
       "beats_random": false
     }
   ],
@@ -117,5 +117,5 @@
   "verdict": "No strategy beats the random baseline at a statistically significant level. Consistent with an unpredictable, fair lottery - exactly as expected.",
   "disclaimer": "Toto draws are independent random events. No method can predict future draws better than chance; the jackpot odds are 1 in 13,983,816 and the expected value of a ticket is negative.",
   "precomputed": true,
-  "generated_from_draw": 4218
+  "generated_from_draw": 4219
 }
